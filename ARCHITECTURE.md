@@ -9,7 +9,7 @@ Ferramenta interna que dá vida às plaquinhas físicas NFC + QR Code: cada plaq
    guarda só a URL            código aleatório de 8 chars         busca cliente no banco,
                                                                   decifra a chave, monta o
                                                                   BR Code e desenha o QR Pix
- Operador ──► /login (senha + TOTP) ──► /admin ──► cadastra cliente, gera plaquinhas,
+ Operador ──► /login (e-mail + senha) ──► /admin ──► cadastra cliente, gera plaquinhas,
                                                     baixa QR (SVG/PNG), suspende, troca chave
 ```
 
@@ -22,9 +22,8 @@ A URL na tag é **dinâmica**: a tag guarda apenas `APP_BASE_URL/<código>`. Cha
 | App (hosting Netlify) | Next.js 16 (App Router) + React 19, TypeScript strict | Server Components/Actions mantêm segredos no servidor; página pública renderizada no servidor, sem JS obrigatório |
 | Motor Pix | `packages/pix-brcode` (TS puro, zero deps) | Risco técnico central isolado: testável sem rede, reutilizável, superfície de supply chain nula |
 | Banco | PostgreSQL + Drizzle ORM + postgres.js | SQL tipado e migrações versionadas; triggers garantem o audit log imutável |
-| Cripto | AES-256-GCM (`node:crypto`) | Chave Pix e segredo TOTP cifrados em repouso; autenticada, sem dependência |
+| Cripto | AES-256-GCM (`node:crypto`) | Chave Pix cifrada em repouso; autenticada, sem dependência |
 | Senhas | scrypt (`node:crypto`, N=2^15) | Memory-hard, sem módulo nativo |
-| MFA | TOTP (`otpauth`) | Padrão aberto, funciona em qualquer autenticador; anti-replay por passo |
 | QR | `qrcode` | Nível M na página de pagamento, **Q** nas plaquinhas (tolera desgaste) |
 | UI | Tailwind v4, Geist + Instrument Serif | Dark-first, tipografia editorial |
 | Qualidade | Biome, Vitest, fast-check, pnpm workspaces | Uma ferramenta de lint/format, testes rápidos, property-based no motor |
@@ -35,11 +34,11 @@ A URL na tag é **dinâmica**: a tag guarda apenas `APP_BASE_URL/<código>`. Cha
 packages/pix-brcode/   motor BR Code: payload, CRC16, validação/máscara de chave, parser
 apps/web/
   src/app/[code]/      página pública de pagamento
-  src/app/login/       senha + TOTP
+  src/app/login/       e-mail + senha
   src/app/admin/       painel (clientes, plaquinhas, QR, auditoria)
   src/db/              schema Drizzle e cliente (1 conexão por instância serverless)
   netlify.toml         build da Netlify (package directory = apps/web, definido na UI)
-  src/lib/             crypto, sessão, TOTP, rate limit, links, parsing de valor
+  src/lib/             crypto, sessão, rate limit, links, parsing de valor
   src/middleware.ts    CSP com nonce por requisição (Edge Function na Netlify)
   drizzle/             migrações SQL versionadas
   scripts/             CLIs: operator:create, plate:create
@@ -47,10 +46,11 @@ apps/web/
 
 ## Decisões de segurança
 
-- **Sem cadastro público.** Operadores só são criados pela CLI, que já gera o segredo TOTP (não existe janela de enrolamento exposta na internet).
-- **Sessão:** token aleatório de 256 bits em cookie `httpOnly`, `SameSite=Strict`, `Secure` em produção; no banco só o SHA-256. Sessão pré-MFA dura 10 min; o token é trocado após o MFA (sem fixação).
-- **MFA anti-replay:** o passo TOTP aceito é consumido com `UPDATE ... WHERE last_step < passo`, atômico. Trocar a chave Pix exige um código novo mesmo logado.
-- **Rate limit** em Postgres (compartilhado entre instâncias): login por IP e por e-mail, MFA e troca de chave por operador. Login com e-mail inexistente gasta o mesmo tempo (anti-enumeração por timing).
+- **Sem cadastro público.** Operadores só são criados pela CLI.
+- **Sem 2FA (decisão do fundador):** o login é só e-mail + senha; a defesa é senha forte, rate limit e sessão curta. Se voltar a ser necessário, reintroduzir TOTP (a migração `0004_remove_mfa` removeu as colunas).
+- **Sessão:** token aleatório de 256 bits em cookie `httpOnly`, `SameSite=Strict`, `Secure` em produção; no banco só o SHA-256. A sessão dura 12 h.
+- **Troca de chave Pix** exige justificativa e fica registrada na auditoria.
+- **Rate limit** em Postgres (compartilhado entre instâncias): login por IP e por e-mail, troca de chave e de senha por operador. Login com e-mail inexistente gasta o mesmo tempo (anti-enumeração por timing).
 - **Chave Pix:** cifrada em repouso; a página pública mostra só a máscara. O código copia e cola embute a chave por definição do BR Code.
 - **Audit log append-only:** triggers bloqueiam `UPDATE`/`DELETE`/`TRUNCATE`. Sem FK para operadores, para não impedir a remoção de contas.
 - **CSP** com nonce e `strict-dynamic`, HSTS, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, SVG servido com CSP própria.
@@ -98,6 +98,6 @@ Sem APIs pagas. Cada acesso à página pública faz 1 SELECT e 1 decifragem AES 
 ## Limitações conhecidas
 
 - Pix **estático**: o sistema não sabe se o pagamento foi feito (pós-MVP: Pix dinâmico via PSP).
-- Trocar a senha é possível em `/admin/account` (exige senha atual + TOTP e encerra as outras sessões). Não há recuperação de senha esquecida nem rotação do TOTP (hoje: apagar e recriar o operador pela CLI).
+- Trocar a senha é possível em `/admin/account` (exige a senha atual e encerra as outras sessões). Não há recuperação de senha esquecida (hoje: apagar e recriar o operador pela CLI).
 - A página pública não tem rate limit próprio; contar com CDN/WAF na frente em produção.
 - O deploy na Netlify ainda não foi executado de ponta a ponta: o build local do adaptador no Windows para em `EPERM symlink` (exige modo desenvolvedor), então a validação real é o primeiro build na Netlify (Linux).

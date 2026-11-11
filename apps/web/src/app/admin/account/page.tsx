@@ -20,8 +20,7 @@ export default async function AccountPage({
       <section className={`${card} mt-8`}>
         <h2 className="font-serif text-2xl">Alterar senha</h2>
         <p className="mt-1 text-sm text-muted">
-          Exige a senha atual e um código do autenticador. As outras sessões abertas serão
-          encerradas.
+          Exige a senha atual. As outras sessões abertas serão encerradas.
         </p>
         {saved && (
           <output className="mt-4 block text-sm text-emerald-300">
@@ -75,20 +74,6 @@ export default async function AccountPage({
               maxLength={128}
               required
               className={input}
-            />
-          </div>
-          <div>
-            <label htmlFor="totp" className={label}>
-              Código do autenticador
-            </label>
-            <input
-              id="totp"
-              name="totp"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={7}
-              required
-              className={`${input} font-mono tracking-[0.3em]`}
             />
           </div>
           <button type="submit" className={buttonPrimary}>

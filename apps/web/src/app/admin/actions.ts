@@ -10,7 +10,7 @@ import { CODE_PATTERN, generatePlateCode } from "@/lib/code.ts";
 import { encryptSecret } from "@/lib/crypto.ts";
 import { hashPassword, validateNewPassword, verifyPassword } from "@/lib/password.ts";
 import { rateLimit } from "@/lib/rate-limit.ts";
-import { consumeTotp, requireOperator, revokeOtherSessions } from "@/lib/session.ts";
+import { requireOperator, revokeOtherSessions } from "@/lib/session.ts";
 
 const color = z
   .string()
@@ -124,7 +124,7 @@ export async function updateCustomerAction(formData: FormData) {
   redirect(`/admin/plates/${code}?saved=1`);
 }
 
-/** Troca de chave Pix: exige um código TOTP novo, mesmo com a sessão já autenticada. */
+/** Troca de chave Pix: exige justificativa e fica registrada na auditoria. */
 export async function changeKeyAction(formData: FormData) {
   const { operatorId } = await requireOperator();
   const code = String(formData.get("code") ?? "");
@@ -134,10 +134,6 @@ export async function changeKeyAction(formData: FormData) {
   if (!(await rateLimit(`keychange:${operatorId}`, 5, 10 * 60))) {
     fail(path, "Muitas tentativas. Aguarde alguns minutos.");
   }
-  if (!(await consumeTotp(operatorId, String(formData.get("totp") ?? "").replace(/\s/g, "")))) {
-    fail(path, "Código de verificação inválido ou já utilizado.");
-  }
-
   const reason = String(formData.get("reason") ?? "").trim();
   if (reason.length < 5 || reason.length > 300)
     fail(path, "Informe a justificativa (5 a 300 caracteres).");
@@ -221,7 +217,7 @@ export async function addPlatesAction(formData: FormData) {
   redirect(created.length === 1 ? `/admin/plates/${created[0]}` : "/admin");
 }
 
-/** Troca a senha do operador logado: exige senha atual + código TOTP novo e encerra as outras sessões. */
+/** Troca a senha do operador logado: exige a senha atual e encerra as outras sessões. */
 export async function changePasswordAction(formData: FormData) {
   const session = await requireOperator();
   const path = "/admin/account";
@@ -248,12 +244,6 @@ export async function changePasswordAction(formData: FormData) {
   if (await verifyPassword(next, operator.passwordHash)) {
     fail(path, "A nova senha deve ser diferente da atual.");
   }
-  // O código TOTP é consumido por último: erros de formulário não gastam o código.
-  const totp = String(formData.get("totp") ?? "").replace(/\s/g, "");
-  if (!(await consumeTotp(session.operatorId, totp))) {
-    fail(path, "Código do autenticador inválido ou já utilizado.");
-  }
-
   await db
     .update(operators)
     .set({ passwordHash: await hashPassword(next) })

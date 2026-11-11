@@ -1,13 +1,9 @@
-// Cria um operador do painel e gera o segredo TOTP já no momento da criação,
-// para que não exista janela de cadastro de MFA aberta pela internet.
+// Cria um operador do painel (e-mail + senha). Não há cadastro público.
 // Uso: OPERATOR_PASSWORD='<min. 12 caracteres>' pnpm --filter @linkq/web operator:create -- --email voce@empresa.com
 import { parseArgs } from "node:util";
-import QRCode from "qrcode";
 import { db } from "../src/db/client.ts";
 import { auditLog, operators } from "../src/db/schema.ts";
-import { encryptSecret } from "../src/lib/crypto.ts";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "../src/lib/password.ts";
-import { generateTotpSecret, totpUri } from "../src/lib/totp.ts";
 
 // Alguns gerenciadores repassam o "--" do `pnpm run … -- --email x` como argumento literal.
 const { values } = parseArgs({
@@ -26,14 +22,13 @@ if (!password || password.length < MIN_PASSWORD_LENGTH) {
 }
 
 const email = values.email.trim().toLowerCase();
-const secret = generateTotpSecret();
 
 try {
   const passwordHash = await hashPassword(password);
   await db.transaction(async (tx) => {
     const [operator] = await tx
       .insert(operators)
-      .values({ email, passwordHash, totpSecretEnc: encryptSecret(secret) })
+      .values({ email, passwordHash })
       .returning({ id: operators.id });
     await tx.insert(auditLog).values({
       action: "operator.create",
@@ -51,9 +46,5 @@ try {
   process.exit(1);
 }
 
-console.log(`Operador ${email} criado.\n`);
-console.log("Escaneie no app autenticador (Google Authenticator, 1Password, Authy...):\n");
-console.log(await QRCode.toString(totpUri(secret, email), { type: "terminal", small: true }));
-console.log(`Ou informe a chave manualmente: ${secret}`);
-console.log("\nGuarde a chave em local seguro: ela não será exibida novamente.");
+console.log(`Operador ${email} criado.`);
 process.exit(0);

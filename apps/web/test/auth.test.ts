@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appBaseUrl, plateUrl } from "../src/lib/links.ts";
 import { hashPassword, validateNewPassword, verifyPassword } from "../src/lib/password.ts";
-import { checkTotp, generateTotp, generateTotpSecret, totpUri } from "../src/lib/totp.ts";
 
 describe("password", () => {
   it("faz round-trip, usa salt e rejeita senha errada ou hash malformado", async () => {
@@ -21,30 +20,6 @@ describe("validateNewPassword", () => {
     expect(validateNewPassword("aaaaaaaaaaaaaaaa", "contato@x.com")).toMatch(/fraca/);
     expect(validateNewPassword("minha-contato-123456", "contato@x.com")).toMatch(/e-mail/);
     expect(validateNewPassword(`${"x".repeat(200)}y`, "a@b.com")).toMatch(/máximo/);
-  });
-});
-
-describe("totp", () => {
-  const secret = generateTotpSecret();
-  const now = Date.UTC(2026, 9, 27, 12, 0, 0);
-
-  it("aceita o código atual e devolve o passo", () => {
-    const step = checkTotp(secret, generateTotp(secret, now), now);
-    expect(step).toBe(Math.floor(now / 1000 / 30));
-  });
-
-  it("tolera ±1 passo e rejeita além disso", () => {
-    const old = generateTotp(secret, now - 30_000);
-    expect(checkTotp(secret, old, now)).toBe(Math.floor(now / 1000 / 30) - 1);
-    expect(checkTotp(secret, generateTotp(secret, now - 120_000), now)).toBeNull();
-  });
-
-  it.each(["", "12345", "1234567", "abcdef"])("rejeita formato inválido %j", (token) => {
-    expect(checkTotp(secret, token, now)).toBeNull();
-  });
-
-  it("gera URI otpauth com o emissor", () => {
-    expect(totpUri(secret, "a@b.com")).toMatch(/^otpauth:\/\/totp\/LinkQ:a%40b\.com\?/);
   });
 });
 

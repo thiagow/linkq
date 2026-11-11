@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   bigserial,
-  boolean,
   index,
   integer,
   jsonb,
@@ -20,10 +19,6 @@ export const operators = pgTable("operators", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  /** Segredo TOTP cifrado (AES-GCM), gerado na criação do operador. */
-  totpSecretEnc: text("totp_secret_enc").notNull(),
-  /** Último passo TOTP aceito; impede reuso do mesmo código (replay). */
-  totpLastStep: integer("totp_last_step"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -35,8 +30,6 @@ export const sessions = pgTable(
     operatorId: uuid("operator_id")
       .notNull()
       .references(() => operators.id, { onDelete: "cascade" }),
-    /** Falso até o segundo fator ser validado. */
-    mfaVerified: boolean("mfa_verified").notNull().default(false),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

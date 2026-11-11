@@ -163,8 +163,8 @@ export default async function PlatePage({
       <section className={card}>
         <h2 className="font-serif text-2xl">Trocar chave Pix</h2>
         <p className="mt-1 text-sm text-muted">
-          Vale para todas as plaquinhas deste cliente. Exige um código novo do autenticador e fica
-          registrado na auditoria.
+          Vale para todas as plaquinhas deste cliente. Exige justificativa e fica registrado na
+          auditoria.
         </p>
         <form action={changeKeyAction} className="mt-5 grid gap-5 sm:grid-cols-2">
           <input type="hidden" name="code" value={code} />
@@ -192,20 +192,6 @@ export default async function PlatePage({
               minLength={5}
               maxLength={300}
               className={input}
-            />
-          </div>
-          <div>
-            <label htmlFor="totp" className={label}>
-              Código do autenticador
-            </label>
-            <input
-              id="totp"
-              name="totp"
-              inputMode="numeric"
-              autoComplete="off"
-              required
-              maxLength={7}
-              className={`${input} font-mono tracking-[0.3em]`}
             />
           </div>
           <div className="sm:col-span-2">

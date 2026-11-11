@@ -8,7 +8,7 @@ const OPTIONS = { errorCorrectionLevel: "Q", margin: 4 } as const;
 
 export async function GET(request: Request, { params }: { params: Promise<{ code: string }> }) {
   const session = await getSession();
-  if (!session?.mfaVerified) return new Response("Unauthorized", { status: 401 });
+  if (!session) return new Response("Unauthorized", { status: 401 });
 
   const { code } = await params;
   if (!CODE_PATTERN.test(code)) return new Response("Not found", { status: 404 });

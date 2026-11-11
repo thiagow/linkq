@@ -16,7 +16,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const session = await getSession();
-  if (session?.mfaVerified) redirect("/admin");
+  if (session) redirect("/admin");
   const { error } = await searchParams;
   const message = error ? MESSAGES[error] : undefined;
 
