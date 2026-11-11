@@ -10,6 +10,8 @@ import { buttonGhost, buttonPrimary, card, input, label } from "../../../ui.ts";
 import {
   addPlatesAction,
   changeKeyAction,
+  deletePlateAction,
+  renamePlateAction,
   setPlateStatusAction,
   updateCustomerAction,
 } from "../../actions.ts";
@@ -203,6 +205,41 @@ export default async function PlatePage({
       </section>
 
       <section className={card}>
+        <h2 className="font-serif text-2xl">Trocar o link</h2>
+        <p className="mt-1 text-sm text-muted">
+          Define um final de link personalizado, como{" "}
+          <span className="font-mono">padariaexemplo</span>. O link atual{" "}
+          <span className="font-mono">/{code}</span> deixa de funcionar: tags NFC e QR já gravados
+          com ele precisam ser regravados.
+        </p>
+        <form action={renamePlateAction} className="mt-5 space-y-4">
+          <input type="hidden" name="code" value={code} />
+          <div>
+            <label htmlFor="newCode" className={label}>
+              Novo link
+            </label>
+            <input
+              id="newCode"
+              name="newCode"
+              required
+              maxLength={40}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="padariaexemplo"
+              className={`${input} font-mono`}
+            />
+          </div>
+          <label className="flex items-start gap-3 text-sm">
+            <input type="checkbox" name="confirm" value="yes" required className="mt-1" />
+            <span>Entendo que o link atual vai parar de funcionar.</span>
+          </label>
+          <button type="submit" className={buttonGhost}>
+            Trocar link
+          </button>
+        </form>
+      </section>
+
+      <section className={card}>
         <h2 className="font-serif text-2xl">Mais plaquinhas para este cliente</h2>
         <form action={addPlatesAction} className="mt-5 flex items-end gap-4">
           <input type="hidden" name="code" value={code} />
@@ -222,6 +259,31 @@ export default async function PlatePage({
           </div>
           <button type="submit" className={buttonGhost}>
             Gerar
+          </button>
+        </form>
+      </section>
+
+      <section className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5">
+        <h2 className="font-serif text-2xl text-red-300">Excluir plaquinha</h2>
+        <p className="mt-1 text-sm text-muted">
+          Definitivo. O link <span className="font-mono">{code}</span> gravado na tag e no QR passa
+          a mostrar "Link não encontrado" e não pode ser recuperado. Se esta for a última plaquinha
+          do cliente, o cadastro e a chave Pix dele também são apagados. Para pausar sem perder o
+          link, use <b className="font-medium text-paper">Suspender</b>.
+        </p>
+        <form action={deletePlateAction} className="mt-5 space-y-4">
+          <input type="hidden" name="code" value={code} />
+          <label className="flex items-start gap-3 text-sm">
+            <input type="checkbox" name="confirm" value="yes" required className="mt-1" />
+            <span>
+              Entendo que a exclusão é permanente e que a tag física deixará de funcionar.
+            </span>
+          </label>
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-xl border border-red-500/50 px-4 py-2.5 text-sm text-red-300 transition hover:bg-red-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+          >
+            Excluir plaquinha
           </button>
         </form>
       </section>

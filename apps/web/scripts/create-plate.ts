@@ -5,7 +5,7 @@ import { parseArgs } from "node:util";
 import { maskPixKey, normalizeText, parsePixKey } from "@linkq/pix-brcode";
 import { db } from "../src/db/client.ts";
 import { auditLog, customers, plates } from "../src/db/schema.ts";
-import { generatePlateCode } from "../src/lib/code.ts";
+import { generatePlateCode, parseCustomCode } from "../src/lib/code.ts";
 import { encryptSecret } from "../src/lib/crypto.ts";
 import { plateUrl } from "../src/lib/links.ts";
 
@@ -17,6 +17,7 @@ const { values } = parseArgs({
     city: { type: "string" },
     color: { type: "string" },
     label: { type: "string" },
+    code: { type: "string" },
   },
 });
 
@@ -30,7 +31,15 @@ if (values.color && !/^#[0-9a-fA-F]{6}$/.test(values.color)) {
 }
 
 const key = parsePixKey(values.key);
-const code = generatePlateCode();
+let code = generatePlateCode();
+if (values.code) {
+  const custom = parseCustomCode(values.code);
+  if (!custom.ok) {
+    console.error(custom.error);
+    process.exit(1);
+  }
+  code = custom.code;
+}
 
 await db.transaction(async (tx) => {
   const [customer] = await tx

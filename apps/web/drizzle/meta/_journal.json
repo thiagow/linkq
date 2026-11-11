@@ -36,6 +36,13 @@
       "when": 1794380857229,
       "tag": "0004_remove_mfa",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794382068573,
+      "tag": "0005_custom_plate_codes",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { appBaseUrl } from "@/lib/links.ts";
 import { requireOperator } from "@/lib/session.ts";
 import { buttonPrimary, input, label } from "../../../ui.ts";
 import { createCustomerAction } from "../../actions.ts";
@@ -59,6 +60,29 @@ export default async function NewCustomerPage({
             </label>
             <input id="city" name="city" required maxLength={60} className={input} />
           </div>
+        </div>
+        <div>
+          <label htmlFor="code" className={label}>
+            Link da plaquinha (opcional)
+          </label>
+          <div className="flex items-center rounded-xl border border-line bg-surface focus-within:border-paper/40">
+            <span className="shrink-0 pl-3.5 font-mono text-sm text-muted">
+              {appBaseUrl().replace(/^https?:\/\//, "")}/
+            </span>
+            <input
+              id="code"
+              name="code"
+              maxLength={40}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="padariaexemplo"
+              className="w-full bg-transparent py-3 pr-3.5 pl-0.5 font-mono text-sm text-paper outline-none placeholder:text-muted/60"
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-muted">
+            Letras minúsculas, números e hífen (3 a 40). Deixe vazio para gerar um código aleatório.
+            Só vale com 1 plaquinha. Depois de gravado na tag, trocar o link exige regravar a tag.
+          </p>
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>

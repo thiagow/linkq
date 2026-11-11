@@ -54,7 +54,7 @@ export const plates = pgTable(
   "plates",
   {
     /** Código curto e aleatório gravado na tag NFC / QR. */
-    code: varchar("code", { length: 8 }).primaryKey(),
+    code: varchar("code", { length: 40 }).primaryKey(),
     customerId: uuid("customer_id")
       .notNull()
       .references(() => customers.id, { onDelete: "restrict" }),
@@ -72,7 +72,7 @@ export const auditLog = pgTable("audit_log", {
   operatorId: uuid("operator_id"),
   action: text("action").notNull(),
   customerId: uuid("customer_id"),
-  plateCode: varchar("plate_code", { length: 8 }),
+  plateCode: varchar("plate_code", { length: 40 }),
   detail: jsonb("detail").notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

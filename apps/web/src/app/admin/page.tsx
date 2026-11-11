@@ -4,6 +4,7 @@ import { db } from "@/db/client.ts";
 import { customers, plates } from "@/db/schema.ts";
 import { requireOperator } from "@/lib/session.ts";
 import { buttonPrimary } from "../ui.ts";
+import { setPlateStatusAction } from "./actions.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,10 @@ export default async function AdminHome() {
       ) : (
         <ul className="mt-8 divide-y divide-line overflow-hidden rounded-2xl border border-line">
           {rows.map(({ plate, customer }) => (
-            <li key={plate.code}>
+            <li key={plate.code} className="flex items-center transition hover:bg-surface">
               <Link
                 href={`/admin/plates/${plate.code}`}
-                className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-surface"
+                className="flex min-w-0 flex-1 items-center justify-between gap-4 py-4 pl-5"
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{customer.displayName}</p>
@@ -58,6 +59,21 @@ export default async function AdminHome() {
                   </span>
                 </div>
               </Link>
+              <form action={setPlateStatusAction} className="shrink-0 px-5">
+                <input type="hidden" name="code" value={plate.code} />
+                <input type="hidden" name="from" value="list" />
+                <input
+                  type="hidden"
+                  name="status"
+                  value={plate.status === "active" ? "suspended" : "active"}
+                />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-line px-3 py-1.5 text-xs text-paper/80 transition hover:border-paper/30 hover:text-paper"
+                >
+                  {plate.status === "active" ? "Suspender" : "Reativar"}
+                </button>
+              </form>
             </li>
           ))}
         </ul>

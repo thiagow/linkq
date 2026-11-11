@@ -31,7 +31,7 @@ LinkQ **não é SaaS**. É uma ferramenta interna para os clientes que compram n
 
 ## Invariantes que não podem ser quebradas
 
-- **O link impresso/gravado é permanente.** O id da plaquinha é curto, aleatório (base58, ~6–8 chars) e nunca sequencial. A chave Pix fica no banco, nunca no payload gravado na tag; trocar a chave não exige regravar a plaquinha. O domínio precisa ser nosso e eterno.
+- **O link impresso/gravado é permanente.** O id da plaquinha é, por padrão, curto e aleatório (base58, 8 chars, nunca sequencial); o operador pode definir um link personalizado (`padariaexemplo`: minúsculas, números e hífen, 3–40 chars, validado em `src/lib/code.ts`), o que torna o link adivinhável por decisão do fundador. Trocar o código invalida tags/QR já gravados. A chave Pix fica no banco, nunca no payload gravado na tag; trocar a chave não exige regravar a plaquinha. O domínio precisa ser nosso e eterno.
 - **Pix estático, sem PSP e sem custódia.** Não há confirmação de pagamento; isso é pós-MVP.
 - **Chave Pix é dado pessoal (LGPD):** cifrada em repouso (AES-GCM), nunca exibida completa na página pública (só mascarada, ex.: `***.456.789-**`, junto do nome do recebedor).
 - **Toda alteração de chave** gera linha em `audit_log` (append-only: trigger no Postgres bloqueia UPDATE/DELETE/TRUNCATE) e exige justificativa do operador (sem MFA: removido por decisão do fundador). Não há aviso por e-mail ao cliente nesta versão (decisão do fundador).
