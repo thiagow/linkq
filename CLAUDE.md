@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Fases 1 e 2 implementadas: motor Pix, página pública `/[code]`, login com e-mail + senha (sem 2FA, por decisão do fundador), painel admin (clientes, plaquinhas, QR SVG/PNG, troca de chave com justificativa, auditoria). **Hospedagem: Netlify (sem Docker)**; passo a passo e armadilhas em `ARCHITECTURE.md`. **Pendentes:** pagar R$0,01 em vários bancos (validação manual do BR Code), primeiro deploy na Netlify em `gerelink.online`. Plano completo aprovado: `C:\Users\thiag\.claude\plans\fa-a-uma-analise-e-gentle-kahan.md`.
+Fases 1 e 2 implementadas: motor Pix, página pública `/[code]`, login com e-mail + senha (sem 2FA, por decisão do fundador), painel admin (clientes, plaquinhas, QR SVG/PNG, troca de chave com justificativa, auditoria). **Hospedagem: Netlify (sem Docker)**; passo a passo e armadilhas em `ARCHITECTURE.md`. **Pendentes:** pagar R$0,01 em vários bancos (validação manual do BR Code), primeiro deploy na Netlify em `gerelink.online`. Migrações até a `0005` já aplicadas no banco de produção. Plano completo aprovado: `C:\Users\thiag\.claude\plans\fa-a-uma-analise-e-gentle-kahan.md`.
 
 ## Comandos
 
